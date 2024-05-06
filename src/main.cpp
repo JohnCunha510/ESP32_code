@@ -182,6 +182,8 @@ void loop() {
   // no matter what you must call this handleClient repeatidly--otherwise the web page
   // will not get instructions to do something
   server.handleClient();
+
+  
 }
 void transmit_SPI(){
   TxBuffer[4] = Tx_command;
