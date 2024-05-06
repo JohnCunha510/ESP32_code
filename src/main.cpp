@@ -11,6 +11,7 @@
 // replace this with your homes intranet connect parameters
 // DEEC , uc2020252382@student.uc.pt , Joao2002
 // HUAWEI-89UJQF_HiLink , estudantes
+// ESPwlan, 12344321
 #define LOCAL_SSID "HUAWEI-89UJQF_HiLink"
 #define LOCAL_USER "uc2020252382@student.uc.pt"
 #define LOCAL_PASS "estudantes"
@@ -25,6 +26,8 @@
 #define VSPI_SCLK 26
 #define VSPI_SS 27
 
+
+
 // initialize functions
 void printWifiStatus();     // Print WiFi settings and status
 void SendXML();             // Send the XML table to the Web
@@ -34,6 +37,11 @@ void ProcessForward_0();    // Callback when receives Forward = 0
 void ProcessForward_1();    // Callback when receives Forward = 1
 void ProcessBackward_0();   // Callback when receives Backward = 0
 void ProcessBackward_1();   // Callback when receives Backward = 1
+void transmit_SPI(); //
+
+// initialize tasks
+void request_distance_code(void *parameter);
+TaskHandle_t request_distance;
 
 // variables to store measure data and sensor states
 uint32_t sensor_update_time = 0;
@@ -69,6 +77,10 @@ typedef union _packet_buffer_t
 
 packet_buffer_t motor_encoder;     // Packet to store Motor Counter
 packet_buffer_t PWM_toSend;        // Packet to send Motor Speed
+
+char Tx_command;
+uint8_t Tx_send[6];
+uint8_t distance;
 
 uint8_t RxBuffer[bufferSize]; // Recive Buffer
 uint8_t TxBuffer[bufferSize]; // Transmit Buffer
@@ -146,6 +158,15 @@ void setup() {
 
   // finally begin the server
   server.begin();
+
+  xTaskCreatePinnedToCore(
+    request_distance_code,
+    "request_distance",
+    10000,
+    NULL,
+    0,
+    &request_distance,
+    0);
 }
 
 void loop() {
@@ -157,25 +178,25 @@ void loop() {
   // in my example here every 50 ms, i measure some analog sensor data (my finger dragging over the pins
   // and process accordingly
   // analog input can be from temperature sensors, light sensors, digital pin sensors, etc.
-  if ((millis() - sensor_update_time) >= 50) {
-    sensor_update_time = millis();
-    TxBuffer[5] = PWM_toSend.buff[0];
-    TxBuffer[6] = PWM_toSend.buff[1];
-    TxBuffer[7] = PWM_toSend.buff[2];
-    TxBuffer[8] = PWM_toSend.buff[3];
-    digitalWrite(VSPI_SS,LOW);
-    SPI.transferBytes(TxBuffer, RxBuffer, bufferSize);
-    digitalWrite(VSPI_SS, HIGH);
-    motor_encoder.buff[0] = RxBuffer[5];
-    motor_encoder.buff[1] = RxBuffer[6];
-    motor_encoder.buff[2] = RxBuffer[7];
-    motor_encoder.buff[3] = RxBuffer[8];
-    Serial.printf("Rx: %d \t | \t Tx: %d\n\r", motor_encoder.value, PWM_toSend.value);
-  }
 
   // no matter what you must call this handleClient repeatidly--otherwise the web page
   // will not get instructions to do something
   server.handleClient();
+
+  
+}
+void transmit_SPI(){
+  TxBuffer[4] = Tx_command;
+  TxBuffer[5] = Tx_send[0];
+  TxBuffer[6] = Tx_send[1];
+  TxBuffer[7] = Tx_send[2];
+  TxBuffer[8] = Tx_send[3];
+  TxBuffer[9] = Tx_send[4];
+  digitalWrite(VSPI_SS,LOW);
+  SPI.transferBytes(TxBuffer, RxBuffer, bufferSize);
+  digitalWrite(VSPI_SS, HIGH);
+  distance = RxBuffer[4];
+  Serial.printf("Rx: %d \t | \t Tx: %c, %d, %d\n\r", distance, Tx_command, Tx_send[0], Tx_send[1]);
 }
 
 // function managed by an .on method to handle slider actions on the web page
@@ -211,22 +232,42 @@ void ProcessForward_0() {
   PWM_toSend.value = 0 ;
   sprintf(buf, "%d", PWM_toSend.value);
   server.send(200, "text/plain", buf); //Send web page
+  
+  Tx_command = 'S';
+  Tx_send[0] = 0;
+  Tx_send[1] = 0;
+  transmit_SPI();
 }
 void ProcessForward_1() {
   PWM_toSend.value = PWM_slider ;
   sprintf(buf, "%d", PWM_toSend.value);
   server.send(200, "text/plain", buf); //Send web page
+
+  Tx_command = 'F';
+  Tx_send[0] = PWM_slider;
+  Tx_send[1] = 0;
+  transmit_SPI();
 }
 // processing Backward
 void ProcessBackward_0() {
   PWM_toSend.value = 0 ;
   sprintf(buf, "%d", PWM_toSend.value);
   server.send(200, "text/plain", buf); //Send web page
+
+  Tx_command = 'S';
+  Tx_send[0] = 0;
+  Tx_send[1] = 0;
+  transmit_SPI();
 }
 void ProcessBackward_1() {
   PWM_toSend.value = - PWM_slider ;
   sprintf(buf, "%d", PWM_toSend.value);
   server.send(200, "text/plain", buf); //Send web page
+
+  Tx_command = 'B';
+  Tx_send[0] = PWM_slider;
+  Tx_send[1] = 0;
+  transmit_SPI();
 }
 
 // code to send the main web page
@@ -249,7 +290,7 @@ void SendXML() {
   strcpy(XML, "<?xml version = '1.0'?>\n<Data>\n");
 
   // send bitsA0
-  sprintf(buf, "<E0>%d</E0>\n",motor_encoder.value);
+  sprintf(buf, "<E0>%d</E0>\n",distance);
   strcat(XML, buf);
   
   strcat(XML, "</Data>\n");
@@ -285,4 +326,20 @@ void printWifiStatus() {
   Serial.println(ip);
 }
 
+void request_distance_code(void *parameter)
+{
+  for (;;)
+  {
+    Tx_command = 'D';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    delay(10);
+    Tx_command = 'x';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    delay(1000);
+  }
+}
 // end of code
