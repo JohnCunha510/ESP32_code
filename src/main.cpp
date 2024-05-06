@@ -8,6 +8,7 @@
 // Coment out to use ESP32 as an access point
 #define USE_INTRANET
 
+
 // replace this with your homes intranet connect parameters
 // DEEC , uc2020252382@student.uc.pt , Joao2002
 // HUAWEI-89UJQF_HiLink , estudantes
