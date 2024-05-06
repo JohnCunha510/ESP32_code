@@ -13,9 +13,9 @@
 // DEEC , uc2020252382@student.uc.pt , Joao2002
 // HUAWEI-89UJQF_HiLink , estudantes
 // ESPwlan, 12344321
-#define LOCAL_SSID "HUAWEI-89UJQF_HiLink"
+#define LOCAL_SSID "ESPwlan"
 #define LOCAL_USER "uc2020252382@student.uc.pt"
-#define LOCAL_PASS "estudantes"
+#define LOCAL_PASS "12344321"
 
 // Settings for tne access point
 #define AP_SSID "TestWebSite"
@@ -265,9 +265,10 @@ void ProcessBackward_1() {
   sprintf(buf, "%d", PWM_toSend.value);
   server.send(200, "text/plain", buf); //Send web page
 
-  Tx_command = 'B';
-  Tx_send[0] = PWM_slider;
-  Tx_send[1] = 0;
+  Tx_command = 'T';
+  Tx_send[0] = 100;
+  Tx_send[1] = 80;
+  Tx_send[2] = 80;
   transmit_SPI();
 }
 
