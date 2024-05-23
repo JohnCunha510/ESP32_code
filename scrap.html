@@ -3,164 +3,175 @@
 
 <title>Web Page Motor Demo</title>
 
-  <style>
+<style>
     table {
-      position: relative;
-      width:100%;
-      border-spacing: 0px;
+    position: relative;
+    width:100%;
+    border-spacing: 0px;
+    border-collapse: collapse;
+    width: 45%; /* Adjust width as needed */
+    margin-bottom: 20px;
+  }
+  tr {
+    border: 1px solid white;
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 20px;
+  }
+  th {
+    height: 20px;
+    padding: 3px 15px;
+    background-color: #343a40;
+    color: #FFFFFF !important;
     }
-    tr {
-      border: 1px solid white;
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 20px;
-    }
-    th {
-      height: 20px;
-      padding: 3px 15px;
-      background-color: #343a40;
-      color: #FFFFFF !important;
-      }
-    td {
-      height: 20px;
-       padding: 3px 15px;
-    }
-    .tabledata {
-      font-size: 24px;
-      position: relative;
-      padding-left: 5px;
-      padding-top: 5px;
-      height:   25px;
-      border-radius: 5px;
-      color: #FFFFFF;
-      line-height: 20px;
-      transition: all 200ms ease-in-out;
-      background-color: #00AA00;
-    }
-    .pwmslider {
-      width: 50%;
-      height: 55px;
-      outline: none;
-      height: 25px;
-    }
-    .bodytext {
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 24px;
-      text-align: left;
-      font-weight: light;
-      border-radius: 5px;
-      display:inline;
-    }
-    .navbar {
-      width: 100%;
-      height: 50px;
-      margin: 0;
-      padding: 10px 0px;
-      background-color: #FFF;
-      color: #000000;
-      border-bottom: 5px solid #293578;
-    }
-    .fixed-top {
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
-      z-index: 1030;
-    }
-    .navtitle {
-      float: left;
-      height: 50px;
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 50px;
-      font-weight: bold;
-      line-height: 50px;
-      padding-left: 20px;
-    }
-   .navheading {
-     position: fixed;
-     left: 60%;
-     height: 50px;
-     font-family: "Verdana", "Arial", sans-serif;
-     font-size: 20px;
-     font-weight: bold;
-     line-height: 20px;
-     padding-right: 20px;
-   }
-   .navdata {
-      justify-content: flex-end;
-      position: fixed;
-      left: 70%;
-      height: 50px;
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 20px;
-      font-weight: bold;
-      line-height: 20px;
-      padding-right: 20px;
-   }
-    .category {
-      font-family: "Verdana", "Arial", sans-serif;
-      font-weight: bold;
-      font-size: 32px;
-      line-height: 50px;
-      padding: 20px 10px 0px 10px;
-      color: #000000;
-    }
-    .heading {
-      font-family: "Verdana", "Arial", sans-serif;
-      font-weight: normal;
-      font-size: 28px;
-      text-align: left;
-    }
-  
-    .btn {
-      background-color: #444444;
-      border: none;
-      color: white;
-      padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
-    }
-    .active {
-      background-color: #666666;
-      color: black;
-    }
-    .foot {
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 20px;
-      position: relative;
-      height:   30px;
-      text-align: center;   
-      color: #AAAAAA;
-      line-height: 20px;
-    }
-    .container {
-      max-width: 1800px;
-      margin: 0 auto;
-    }
-    table tr:first-child th:first-child {
-      border-top-left-radius: 5px;
-    }
-    table tr:first-child th:last-child {
-      border-top-right-radius: 5px;
-    }
-    table tr:last-child td:first-child {
-      border-bottom-left-radius: 5px;
-    }
-    table tr:last-child td:last-child {
-      border-bottom-right-radius: 5px;
-    }
-    
-  </style>
+  td {
+    height: 20px;
+     padding: 3px 15px;
+  }
+  .tabledata {
+    font-size: 24px;
+    position: relative;
+    padding-left: 5px;
+    padding-top: 5px;
+    height:   25px;
+    border-radius: 5px;
+    color: #FFFFFF;
+    line-height: 20px;
+    transition: all 200ms ease-in-out;
+    background-color: #00AA00;
+  }
+  .pwmslider {
+    width: 90%;
+    height: 55px;
+    outline: none;
+    height: 25px;
+  }
+  .bodytext {
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 24px;
+    text-align: left;
+    font-weight: light;
+    border-radius: 5px;
+    display:inline;
+  }
+  .navbar {
+    width: 100%;
+    height: 50px;
+    margin: 0;
+    padding: 10px 0px;
+    background-color: #FFF;
+    color: #000000;
+    border-bottom: 5px solid #293578;
+  }
+  .fixed-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+  }
+  .navtitle {
+    float: left;
+    height: 50px;
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 50px;
+    font-weight: bold;
+    line-height: 50px;
+    padding-left: 20px;
+  }
+ .navheading {
+   position: fixed;
+   left: 60%;
+   height: 50px;
+   font-family: "Verdana", "Arial", sans-serif;
+   font-size: 20px;
+   font-weight: bold;
+   line-height: 20px;
+   padding-right: 20px;
+ }
+ .navdata {
+    justify-content: flex-end;
+    position: fixed;
+    left: 70%;
+    height: 50px;
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 20px;
+    padding-right: 20px;
+ }
+  .category {
+    font-family: "Verdana", "Arial", sans-serif;
+    font-weight: bold;
+    font-size: 32px;
+    line-height: 50px;
+    padding: 20px 10px 0px 10px;
+    color: #000000;
+  }
+  .heading {
+    font-family: "Verdana", "Arial", sans-serif;
+    font-weight: normal;
+    font-size: 28px;
+    text-align: left;
+  }
+
+  .btn {
+    background-color: #444444;
+    border: none;
+    color: white;
+    padding: 10px 60px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+  .active {
+    background-color: #666666;
+    color: black;
+  }
+  .text-input {
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 20px;
+    text-align: left;
+    font-weight: light;
+    border-radius: 5px;
+    display:inline;
+    width: 80%;
+  }
+  .foot {
+    font-family: "Verdana", "Arial", sans-serif;
+    font-size: 20px;
+    position: relative;
+    height:   30px;
+    text-align: center;   
+    color: #AAAAAA;
+    line-height: 20px;
+  }
+  .container {
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+  table tr:first-child th:first-child {
+    border-top-left-radius: 5px;
+  }
+  table tr:first-child th:last-child {
+    border-top-right-radius: 5px;
+  }
+  table tr:last-child td:first-child {
+    border-bottom-left-radius: 5px;
+  }
+  table tr:last-child td:last-child {
+    border-bottom-right-radius: 5px;
+  }
+</style>
 
   <body style="background-color: #efefef" onload="process()">
   
     <header>
       <div class="navbar fixed-top">
           <div class="container">
-            <div class="navtitle">Motor Contorl Panel</div>
+            <div class="navtitle">Robot Contorl Panel</div>
             <div class="navdata" id = "date">mm/dd/yyyy</div>
             <div class="navheading">DATE</div><br>
             <div class="navdata" id = "time">00:00:00</div>
@@ -171,53 +182,189 @@
     </header>
   
     <main class="container" style="margin-top:70px">
-      <div class="category">Encoder Reading</div>
-      <div style="border-radius: 10px !important;">
-      <table style="width:50%">
-      <colgroup>
-        <col span="1" style="background-color:rgb(230,230,230); width: 20%; color:#000000 ;">
-        <col span="1" style="background-color:rgb(200,200,200); width: 15%; color:#000000 ;">
-      </colgroup>
-      <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
-      <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
-      <tr>
-        <th colspan="1"><div class="heading">Sensor</div></th>
-        <th colspan="1"><div class="heading">Value</div></th>
-      </tr>
-      <tr>
-        <td><div class="bodytext">Magnetic Encoder</div></td>
-        <td><div class="tabledata" id = "e0"></div></td>
-      </tr>
-      </table>
-    </div>
-    <br>
-    <br>
-    <div class="category">Motor Controls</div>
-    <br>
-    <button type="button" class = "btn" id = "btnF">Forward</button>
-    </div>
-    <button type="button" class = "btn" id = "btnB">Backward</button>
-    </div>
-    <br>
-    <br>
-    <div class="bodytext">Number to send (PWM: <span id="pwmreceived"></span>)</div>
-    <br>
-    <input type="range" class="pwmslider" min="0" max="100" value = "0" width = "0%" oninput="UpdateSlider(this.value)"/>
-    <br>
-    <br>
-  </main>
+      <div class="category">Send to Robot</div>
+      <div style="border-radius: 10px !important; display: flex; justify-content: space-between;">
+        <table style="width:25%">
+          <colgroup>
+            <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+            <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+          </colgroup>
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <tr>
+            <th colspan="2"><div class="heading">Symple Command</div></th>
+          </tr>
+          <tr>
+            <td><div class="bodytext">Speed(PWM: <span id="ReceiveSpeed"></span>)</div></td>
+            <td><div><input type="range" class="pwmslider" min="10" max="100" value = "0" width = "0%" oninput="UpdateSpeed(this.value)"/></div></td>
+          </tr>
+          <tr>
+            <td class="button-cell"><button class="btn" id="btnForward" onclick="ButtonPressForward()">Forward</button></td>
+            <td class="button-cell"><button class="btn" id="btnBackward" onclick="ButtonPressBackward()">Backward</button></td>
+          </tr>
+          <tr>
+            <td class="button-cell"><button class="btn" id="btnLeft" onclick="ButtonPressLeft()">Turn_Left</button></td>
+            <td class="button-cell"><button class="btn" id="btnRight" onclick="ButtonPressRight()">Turn_Right</button></td>
+          </tr>
+        </table>
+        <table style="width:25%">
+          <colgroup>
+            <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+            <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+          </colgroup>
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <tr>
+            <th colspan="2"><div class="heading">Go to Coordenates</div></th>
+          </tr>
+          <tr>
+            <td class="input-cell"><div class="bodytext">X&nbsp;</div><input type="number" min="0" max="100" class="text-input" id="xtarget" class="text-input"></td>
+            <td class="input-cell"><div class="bodytext">Y&nbsp;</div><input type="number" min="0" max="100" class="text-input" id="ytarget" class="text-input"></td>
+          </tr>
+          <tr>
+            <td class="button-cell"><button class="btn" id="btnStartMove" onclick="ButtonPressStartMove()">Start</button></td>
+            <td class="button-cell"><button class="btn" id="btnStopMove" onclick="ButtonPressStop()">Stop</button></td>
+          </tr>
+          <colgroup>
+            <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+            <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+          </colgroup>
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <tr>
+            <th colspan="2"><div class="heading">Go to Angle</div></th>
+          </tr>
+          <tr>
+            <td><div class="bodytext">degrees</div></td>
+            <td><div class="input-cell"><input type="number" min="0" max="360" class="text-input" id="target_angle"></div></td>
+          </tr>
+          <tr>
+            <td class="button-cell"><button class="btn" id="btnStartAngle" onclick="ButtonPressStartAngle()">Start</button></td>
+            <td class="button-cell"><button class="btn" id="btnStopAngle" onclick="ButtonPressStop()">Stop</button></td>
+          </tr>
+        </table>
+        <table style="width:25%">
+          <colgroup>
+            <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+            <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+          </colgroup>
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <tr>
+            <th colspan="2"><div class="heading">Trajectories</div></th>
+          </tr>
+          <tr>
+            <td colspan="2"><div class="bodytext">Choose Trajectory</div></td>
+          </tr>
+          <tr>
+            <td colspan="2" class="dropdown-cell">
+              <select class="dropdown" id="selectTrajectory">
+                  <option value="1">Square with 50cm radius</option>
+                  <option value="2">Option 2</option>
+                  <option value="3">Option 3</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class="button-cell"><button class="btn" id="btnStartTrajectory" onclick="ButtonPressStartTrajectory()">Start</button></td>
+            <td class="button-cell"><button class="btn" id="btnStopTrajectory" onclick="ButtonPressStop()">Stop</button></td>
+          </tr>
+        </table>
+        <table style="width:25%">
+          <colgroup>
+            <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+            <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+          </colgroup>
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+          <tr>
+            <th colspan="2"><div class="heading">GO Search</div></th>
+          </tr>
+          <tr>
+            <td><div class="bodytext"></div></td>
+            <td><div class="bodytext"></div></td>
+          </tr>
+        </table>
+      </div>
+      <br>
+      <br>
+      <div style="width:100%;overflow:auto;">
+        <div style="width:39%;float:left;">
+          <div class="category" >Robot Status</div>
+          <br>
+          <table style="width:100%">
+            <colgroup>
+              <col span="1" style="background-color:rgb(230,230,230); width: 50%; color:#000000 ;">
+              <col span="1" style="background-color:rgb(200,200,200); width: 50%; color:#000000 ;">
+            </colgroup>
+            <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+            <col span="2"style="background-color:rgb(0,0,0); color:#FFFFFF">
+            <tr>
+              <td><div class="bodytext">Total Distance</div></td>
+              <td><div class="bodytext" id = "totaldist"></div></td>
+            </tr>
+            <tr>
+              <td><div class="bodytext">Instant Coordenates</div></td>
+              <td><div class="bodytext">&nbspX&nbsp=&nbsp<span  id = "instcoorx"></span>&nbsp&nbsp&nbspY&nbsp=&nbsp<span id = "instcoory"></span></div></td>
+            </tr>
+            <tr>
+              <td><div class="bodytext">Rotation Angle</div></td>
+              <td><div class="bodytext">&nbsp<span  id = "instrot"></span>&deg</span></div></td>
+            </tr>
+            <tr>
+              <td><div class="bodytext">Instant Velocity</div></td>
+              <td><div class="bodytext" id = "instvelo"></div></td>
+            </tr>
+            <tr>
+              <td><div class="bodytext"></div></td>
+              <td><div class="bodytext" id = "e0"></div></td>
+            </tr>
+            <tr>
+              <td><div class="bodytext">Victim Situation</div></td>
+              <td><div class="bodytext" id = "vicstatus"></div></td>
+            </tr>
+          </table>
+        </div>
+        <div style="width:60%;float:left;">
+          <div class="category" style="text-align:center;">Map</div>
+          <br>
+          <br>
+        </div>
+      </div>
+      <br>
+      <br>
+      <div style="width:100%;overflow:auto;">
+        <div class="bodytext" style="width:33%;float:left;">
+          <h4>Team:</h4>
+          <p>Jo&atilde;o Pratas n&deg;2020217923</p>
+          <p>Jo&atilde;o Cunha n&deg;2020252382</p>
+          <p>Bruno Silva n&deg;2021248603</p>
+        </div>
+        <div class="bodytext" style="width:33%;float:left;">
+          <h4>Robot:</h4>
+          <p>Micro-controlador: STM32F411CEU6</p>
+          <p>Mirco-controlador: ESP32-WROOM-32D</p>
+        </div>
+        <div class="bodytext" style="width:33%;float:left;">
+          <h4>Project details:</h4>
+          <p>This project has a page dedicated to Documenting the project</p>
+          <div class="button-cell"><button class="btn" onclick="ButtonDocPage()">GO TO</button></div>
+        </div>
+      </div>
 
-  <footer div class="foot" id = "temp" >ESP32 Encoder Monitor and Motor Control Demo</div></footer>
+    </main>
+
+  <footer div class="foot" id = "temp" >Embedded Systems Project developed by Uvinercity of Coimbra<br>State of Development - Traveling predefined trajectoty</div></footer>
   
   </body>
 
 
-  <script type = "text/javascript">
-  
+  <script type="text/javascript">
+      
     // global variable visible to all java functions
     var xmlHttp=createXmlHttpObject();
-    var forward = document.getElementById("btnF");
-    var backward = document.getElementById("btnB");
+    // var button = document.getElementsByClassName("btn");
+
 
     // function to create XML object
     function createXmlHttpObject(){
@@ -229,34 +376,75 @@
       }
       return xmlHttp;
     }
+/*     for (var i = 0; i < button.length; i++) {
+      button[i].addEventListener("mousedown", function() { //button is pressed
+        button.classList.add("active");
+      });
+    }
+    for (var i = 0; i < button.length; i++) {
+      button[i].addEventListener("mouseup", function() { //button is released
+        button.classList.remove("active");
+      });
+    } */
+    // function to handle button press from HTML code above
+    // and send a processing string back to server
+    // this processing string is use in the .on method
+    function ButtonPressForward() {
+      var xhttp = new XMLHttpRequest(); 
+      var value = 
+      xhttp.open("PUT", "BUTTON_Forward", false);
+      xhttp.send(); 
+    }
+    function ButtonPressBackward() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_Backward", false);
+      xhttp.send(); 
+    }
+    function ButtonPressLeft() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_Left", false);
+      xhttp.send(); 
+    }
+    function ButtonPressRight() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_Right", false);
+      xhttp.send(); 
+    }
+    function ButtonPressStartMove() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "XTARGET?VALUE="+document.getElementById("xtarget").value, true);
+      xhttp.send(); 
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_START?VALUE="+document.getElementById("ytarget").value, true);
+      xhttp.send(); 
+    }
+    function ButtonPressStop() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_STOP", false);
+      xhttp.send(); 
+    }
+    function ButtonPressStartAngle() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_TURN?VALUE="+document.getElementById("target_angle").value, true);
+      xhttp.send(); 
+    }
+    function ButtonPressStartTrajectory() {
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("PUT", "BUTTON_TRAJECTORY?VALUE="+document.getElementById("selectTrajectory").value, true);
+      xhttp.send(); 
+    }
 
-    forward.addEventListener("mousedown", function() { //button is pressed
-        forward.classList.add("active");
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("PUT", "Forward_1", false);
-        xhttp.send();
-    });
 
-    forward.addEventListener("mouseup", function() { //button is released
-        forward.classList.remove("active");
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("PUT", "Forward_0", false);
-        xhttp.send();
-    });
 
-    backward.addEventListener("mousedown", function() { //button is pressed
-        backward.classList.add("active");
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("PUT", "Backward_1", false);
-        xhttp.send();
-    });
 
-    backward.addEventListener("mouseup", function() { //button is released
-        backward.classList.remove("active");
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("PUT", "Backward_0", false);
-        xhttp.send();
-    });
+
+
+    function ButtonDocPage(){
+      var xhttp = new XMLHttpRequest(); 
+      xhttp.open("GET", "document", false);
+      xhttp.send(); 
+    }
+
 
 
     function UpdateSlider(value) {
@@ -279,16 +467,28 @@
       xhttp.open("PUT", "PWM_update?VALUE="+value, true);
       xhttp.send();
     }
+    function UpdateSpeed(value) {
+      var xhttp = new XMLHttpRequest();
+      // this time i want immediate feedback to the fan speed
+      // yea yea yea i realize i'm computing fan speed but the point
+      // is how to give immediate feedback
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          // update the web based on reply from  ESP
+          document.getElementById("ReceiveSpeed").innerHTML=this.responseText;
+        }
+      }
+      xhttp.open("PUT", "Speed?VALUE="+value, true);
+      xhttp.send();
+    }
 
     // function to handle the response from the ESP
     function response(){
       var message;
-      var barwidth;
       var currentsensor;
       var xmlResponse;
       var xmldoc;
       var dt = new Date();
-      var color = "#e8e8e8";
      
       // get the xml stream
       xmlResponse=xmlHttp.responseXML;
@@ -298,25 +498,36 @@
       document.getElementById("date").innerHTML = dt.toLocaleDateString();
   
       // Encoder value
+      xmldoc = xmlResponse.getElementsByTagName("TOTALDIST"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("totaldist").innerHTML=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("INSTVELO"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("instvelo").innerHTML=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("INSTCOORX"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("instcoorx").innerHTML=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("INSTCOORY"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("instcoory").innerHTML=message;
+      
+      xmldoc = xmlResponse.getElementsByTagName("INSTROT"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("instrot").innerHTML=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("VICSTATUS"); //E0 value
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("vicstatus").innerHTML=message;
+
       xmldoc = xmlResponse.getElementsByTagName("E0"); //E0 value
       message = xmldoc[0].firstChild.nodeValue;
-      
-      if (message >= 0){
-      color = "#00aa00";
-      }
-      else {
-        color = "#aa0000";
-      }
-      
-      barwidth = message / 10;
-      document.getElementById("e0").innerHTML=message;
-      document.getElementById("e0").style.width=(barwidth+"%");
-      // if you want to use global color set above in <style> section
-      // other wise uncomment and let the value dictate the color
-      document.getElementById("b0").style.backgroundColor=color;
-      document.getElementById("b0").style.borderRadius="5px";
+      document.getElementById("btnStartMove").innerHTML="message";
 
      }
+
   
     // general processing code for the web page to ask for an XML steam
     // this is actually why you need to keep sending data to the page to 
@@ -334,8 +545,6 @@
         // a longer timeout
         setTimeout("process()",100);
     }
-  
-  
   </script>
 
 </html>

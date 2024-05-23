@@ -13,19 +13,25 @@
 // DEEC , uc2020252382@student.uc.pt , Joao2002
 // HUAWEI-89UJQF_HiLink , estudantes
 // ESPwlan, 12344321
-#define LOCAL_SSID "HUAWEI-89UJQF_HiLink"
+#define LOCAL_SSID "ESPwlan"
 #define LOCAL_USER "uc2020252382@student.uc.pt"
-#define LOCAL_PASS "estudantes"
+#define LOCAL_PASS "12344321"
 
 // Settings for tne access point
 #define AP_SSID "TestWebSite"
-#define AP_PASS "023456789"
+#define AP_PASS "12344321"
+
+// start your defines for pins for SPI in ROBOT!!!
+#define VSPI_MISO 19
+#define VSPI_MOSI 23
+#define VSPI_SCLK 18
+#define VSPI_SS 5
 
 // start your defines for pins for SPI, outputs, inputs, etc.
-#define VSPI_MISO 33
+/* #define VSPI_MISO 33
 #define VSPI_MOSI 25
 #define VSPI_SCLK 26
-#define VSPI_SS 27
+#define VSPI_SS 27 */
 
 
 
@@ -33,16 +39,26 @@
 void printWifiStatus();     // Print WiFi settings and status
 void SendXML();             // Send the XML table to the Web
 void SendWebsite();         // Send HTML code to create a Web page
-void UpdatePWM();           // Callback when receives new PWM(slider) Value
-void ProcessForward_0();    // Callback when receives Forward = 0
-void ProcessForward_1();    // Callback when receives Forward = 1
-void ProcessBackward_0();   // Callback when receives Backward = 0
-void ProcessBackward_1();   // Callback when receives Backward = 1
+void SendWebsiteDoc();
+void UpdateSpeed();           // Callback when receives new PWM(slider) Value
+void ProcessForward();    // Callback when receives Forward = 0
+void ProcessBackward();    // Callback when receives Forward = 1
+void ProcessLeft();   // Callback when receives Backward = 0
+void ProcessRight();   // Callback when receives Backward = 1
+void ProcessPreStartMove();   // Callback when receives Backward = 1
+void ProcessStartMove();   // Callback when receives Backward = 1
+void ProcessStop();   // Callback when receives Backward = 1
+void ProcessTurn();   // Callback when receives Backward = 1
+void ProcessTrajectory();   // Callback when receives Backward = 1
 void transmit_SPI(); //
 
 // initialize tasks
 void request_distance_code(void *parameter);
 TaskHandle_t request_distance;
+void request_position_code(void *parameter);
+TaskHandle_t request_position;
+void request_velocity_code(void *parameter);
+TaskHandle_t request_velocity;
 
 // variables to store measure data and sensor states
 uint32_t sensor_update_time = 0;
@@ -52,6 +68,26 @@ int32_t PWM_slider = 0;
 char XML[2048];
 // just some buffer holder for char operations
 char buf[32];
+// trajectory part variables
+int trajectory_choice = 0;
+int path_size[5] = {0,4};
+int16_t paths[5][10][2] = {
+    {
+        {0, 0}, {200, 200}, {0, 0}, {0, 0}
+    },
+    {
+        {100, 0}, {100, 100}, {0, 100}, {0, 0}
+    },
+    {
+        {0, 0}, {200, 200}, {0, 0}, {0, 0}
+    },
+    {
+        {0, 0}, {0, 0}, {0, 0}, {0, 0}
+    },
+    {
+        {0, 0}, {0, 0}, {0, 0}, {0, 0}
+    },
+};
 
 // variable for the IP reported when you connect to your homes intranet (during debug mode)
 IPAddress Actual_IP;
@@ -67,21 +103,33 @@ WebServer server(80);
 
 //--------------------------------------Start Dylan-------------------------------------
 
-#define bufferSize 10   // SPI Buffer size
+#define bufferSize 18   // SPI Buffer size
 
 // Create a variable(union) to receive int32_t of data over SPI
-typedef union _packet_buffer_t
+typedef union _packet_buffer32_t
 {
   uint8_t buff[4];
   int32_t value;
-} packet_buffer_t;
+} packet_buffer32_t;
+typedef union _packet_buffer16_t
+{
+  uint8_t buff[2];
+  int16_t value;
+} packet_buffer16_t;
 
-packet_buffer_t motor_encoder;     // Packet to store Motor Counter
-packet_buffer_t PWM_toSend;        // Packet to send Motor Speed
+packet_buffer16_t distance_total;     // Packet to store Motor Counter
+packet_buffer16_t x_coord;     // Packet to store Motor Counter
+packet_buffer16_t y_coord;        // Packet to send Motor Speed
+packet_buffer16_t angle_rotation;        // Packet to send Motor Speed
+packet_buffer16_t angle_target;        // Packet to send Motor Speed
+packet_buffer16_t x_target;        // Packet to send Motor Speed
+packet_buffer16_t y_target;        // Packet to send Motor Speed
+uint8_t velocity;                   // Packet to send Motor Speed
+uint8_t speed;
 
-char Tx_command;
-uint8_t Tx_send[6];
-uint8_t distance;
+char Tx_command, Rx_command;
+int32_t target_distance;
+uint8_t Tx_send[bufferSize - 4];
 
 uint8_t RxBuffer[bufferSize]; // Recive Buffer
 uint8_t TxBuffer[bufferSize]; // Transmit Buffer
@@ -101,7 +149,7 @@ void setup() {
   Serial.begin(115200);                 // Serial Connection Begin -- 9600
   Serial.setDebugOutput(true);        // Set Debug Output
 
-  PWM_toSend.value = PWM_slider;
+  speed = 0;
 
     // if your web page or XML are large, you may not get a call back from the web page
     // and the ESP will think something has locked up and reboot the ESP
@@ -141,6 +189,8 @@ void setup() {
 
   // this one is a page request, upon ESP getting / string the web page will be sent
   server.on("/", SendWebsite);
+  server.on("/document", SendWebsiteDoc);
+
 
   // upon esp getting /XML string, ESP will build and send the XML, this is how we refresh
   // just parts of the web page
@@ -151,11 +201,16 @@ void setup() {
   // add as many as you need to process incoming strings from your web page
   // as you can imagine you will need to code some javascript in your web page to send such strings
   // this process will be documented in the SuperMon.h web page code
-  server.on("/PWM_update", UpdatePWM);
-  server.on("/Forward_0", ProcessForward_0);
-  server.on("/Forward_1", ProcessForward_1);
-  server.on("/Backward_0", ProcessBackward_0);
-  server.on("/Backward_1", ProcessBackward_1);
+  server.on("/Speed", UpdateSpeed);
+  server.on("/BUTTON_Forward", ProcessForward);
+  server.on("/BUTTON_Backward", ProcessBackward);
+  server.on("/BUTTON_Left", ProcessLeft);
+  server.on("/BUTTON_Right", ProcessRight);
+  server.on("/XTARGET", ProcessPreStartMove);
+  server.on("/BUTTON_START", ProcessStartMove);
+  server.on("/BUTTON_STOP", ProcessStop);
+  server.on("/BUTTON_TURN", ProcessTurn);
+  server.on("/BUTTON_TRAJECTORY", ProcessTrajectory);
 
   // finally begin the server
   server.begin();
@@ -167,6 +222,24 @@ void setup() {
     NULL,
     0,
     &request_distance,
+    0);
+
+  xTaskCreatePinnedToCore(
+    request_position_code,
+    "request_position",
+    10000,
+    NULL,
+    0,
+    &request_position,
+    0);
+
+    xTaskCreatePinnedToCore(
+    request_velocity_code,
+    "request_velocity",
+    10000,
+    NULL,
+    0,
+    &request_velocity,
     0);
 }
 
@@ -193,21 +266,29 @@ void transmit_SPI(){
   TxBuffer[7] = Tx_send[2];
   TxBuffer[8] = Tx_send[3];
   TxBuffer[9] = Tx_send[4];
+  TxBuffer[10] = Tx_send[5];
+  TxBuffer[11] = Tx_send[6];
+  TxBuffer[12] = Tx_send[7];
+  TxBuffer[13] = Tx_send[8];
+  TxBuffer[14] = Tx_send[9];
+  TxBuffer[15] = Tx_send[10];
+  TxBuffer[16] = Tx_send[11];
+  TxBuffer[17] = Tx_send[12];
   digitalWrite(VSPI_SS,LOW);
   SPI.transferBytes(TxBuffer, RxBuffer, bufferSize);
   digitalWrite(VSPI_SS, HIGH);
-  distance = RxBuffer[4];
-  Serial.printf("Rx: %d \t | \t Tx: %c, %d, %d\n\r", distance, Tx_command, Tx_send[0], Tx_send[1]);
+  RxBuffer[4] = Rx_command;
+  Serial.printf("Rx: %c | %d, %d, %d, %d, %d\n\rTx: %c | %d, %d, %d, %d, %d\n\r", Rx_command, RxBuffer[5], RxBuffer[6], RxBuffer[7], RxBuffer[8], RxBuffer[9], Tx_command, TxBuffer[5], TxBuffer[6], TxBuffer[7], TxBuffer[8], TxBuffer[9]);
 }
 
 // function managed by an .on method to handle slider actions on the web page
-void UpdatePWM() {
+void UpdateSpeed() {
 
   String t_state = server.arg("VALUE");
 
   // conver the string sent from the web page to an int
-  PWM_slider = t_state.toInt();
-  Serial.print("Update PWM"); Serial.println(PWM_slider);
+  speed = t_state.toInt();
+  Serial.print("Update Speed"); Serial.println(speed);
 
   // YOU MUST SEND SOMETHING BACK TO THE WEB PAGE--BASICALLY TO KEEP IT LIVE
 
@@ -221,7 +302,7 @@ void UpdatePWM() {
   // i avoid strings at all caost, hence all the code to start with "" in the buffer and build a
   // simple piece of data
   strcpy(buf, "");
-  sprintf(buf, "%d", PWM_slider);
+  sprintf(buf, "%d", speed);
   sprintf(buf, buf);
 
   // now send it back
@@ -229,48 +310,94 @@ void UpdatePWM() {
 }
 
 // processing Forward
-void ProcessForward_0() {
-  PWM_toSend.value = 0 ;
-  sprintf(buf, "%d", PWM_toSend.value);
-  server.send(200, "text/plain", buf); //Send web page
-  
-  Tx_command = 'S';
-  Tx_send[0] = 0;
-  Tx_send[1] = 0;
+void ProcessForward() {
+  Tx_command = 'F';
+  Tx_send[0] = speed;
   transmit_SPI();
 }
-void ProcessForward_1() {
-  PWM_toSend.value = PWM_slider ;
-  sprintf(buf, "%d", PWM_toSend.value);
-  server.send(200, "text/plain", buf); //Send web page
-
-  Tx_command = 'F';
-  Tx_send[0] = PWM_slider;
-  Tx_send[1] = 0;
+void ProcessBackward() {
+  Tx_command = 'B';
+  Tx_send[0] = speed;
   transmit_SPI();
 }
 // processing Backward
-void ProcessBackward_0() {
-  PWM_toSend.value = 0 ;
-  sprintf(buf, "%d", PWM_toSend.value);
-  server.send(200, "text/plain", buf); //Send web page
+void ProcessLeft() {
+  Tx_command = 'L';
+  Tx_send[0] = speed;
+  transmit_SPI();
+}
+void ProcessRight() {
+  Tx_command = 'R';
+  Tx_send[0] = speed;
+  transmit_SPI();
+}
+void ProcessPreStartMove() {
+  String t_state = server.arg("VALUE");
+  x_target.value = t_state.toInt();
+}
+void ProcessStartMove() {
+  Tx_command = 'M';
+  Tx_send[0] = speed;
 
+  String t_state = server.arg("VALUE");
+  y_target.value = t_state.toInt();
+
+  Tx_send[1] = x_target.buff[0];
+  Tx_send[2] = x_target.buff[1];
+  Tx_send[3] = y_target.buff[0];
+  Tx_send[4] = y_target.buff[1];
+  transmit_SPI();
+}
+void ProcessStop() {
   Tx_command = 'S';
   Tx_send[0] = 0;
   Tx_send[1] = 0;
+  Tx_send[2] = 0;
+  Tx_send[3] = 0;
+  Tx_send[4] = 0;
   transmit_SPI();
 }
-void ProcessBackward_1() {
-  PWM_toSend.value = - PWM_slider ;
-  sprintf(buf, "%d", PWM_toSend.value);
-  server.send(200, "text/plain", buf); //Send web page
+void ProcessTurn(){ 
+  Tx_command = 'T';
+  Tx_send[0] = speed;
 
-  Tx_command = 'B';
-  Tx_send[0] = PWM_slider;
-  Tx_send[1] = 0;
+  String t_state = server.arg("VALUE");
+  angle_target.value = t_state.toInt();
+
+  Tx_send[1] = angle_target.buff[0];
+  Tx_send[2] = angle_target.buff[1];
+
+  Serial.printf("target_angle: %d\r\n", angle_target.value);
   transmit_SPI();
 }
+void ProcessTrajectory(){
+  int8_t x_high_byte, x_low_byte;
+  int8_t y_high_byte, y_low_byte;
 
+  String t_state = server.arg("VALUE");
+  trajectory_choice = t_state.toInt();
+
+  for(int i = 0; i < path_size[trajectory_choice]; i++){
+    x_high_byte = (paths[trajectory_choice][i][0] >> 8) & 0xFF;  
+    x_low_byte = paths[trajectory_choice][i][0] & 0xFF;   
+    y_high_byte = (paths[trajectory_choice][i][1] >> 8) & 0xFF;  
+    y_low_byte = paths[trajectory_choice][i][1] & 0xFF;   
+
+
+    Tx_command = 'M';
+    Tx_send[0] = speed;
+    Tx_send[1] = x_high_byte;
+    Tx_send[2] = x_low_byte;
+    Tx_send[3] = y_high_byte;
+    Tx_send[4] = y_low_byte;
+    transmit_SPI();
+    while (!((x_coord.value > paths[trajectory_choice][i][0] -10) && (x_coord.value < paths[trajectory_choice][i][0] +10)) && !((y_coord.value > paths[trajectory_choice][i][1] -10) && (y_coord.value < paths[trajectory_choice][i][1] +10)) )
+    {
+      /* code */
+    }
+    
+  }
+}
 // code to send the main web page
 // PAGE_MAIN is a large char defined in SuperMon.h
 void SendWebsite() {
@@ -279,6 +406,14 @@ void SendWebsite() {
   // you may have to play with this value, big pages need more porcessing time, and hence
   // a longer timeout that 200 ms
   server.send(200, "text/html", PAGE_MAIN);
+
+}
+void SendWebsiteDoc() {
+
+  Serial.println("sending web page");
+  // you may have to play with this value, big pages need more porcessing time, and hence
+  // a longer timeout that 200 ms
+  server.send(200, "text/html", PAGE_DOC);
 
 }
 
@@ -291,10 +426,27 @@ void SendXML() {
   strcpy(XML, "<?xml version = '1.0'?>\n<Data>\n");
 
   // send bitsA0
-  sprintf(buf, "<E0>%d</E0>\n",distance);
+  sprintf(buf, "<TOTALDIST>%d</TOTALDIST>\n",distance_total.value);
+  strcat(XML, buf);
+
+  sprintf(buf, "<INSTCOORX>%d</INSTCOORX>\n",x_coord.value);
+  strcat(XML, buf);
+
+  sprintf(buf, "<INSTCOORY>%d</INSTCOORY>\n",y_coord.value);
+  strcat(XML, buf);
+
+  sprintf(buf, "<INSTROT>%d</INSTROT>\n",angle_rotation.value);
+  strcat(XML, buf);
+
+  sprintf(buf, "<INSTVELO>%d</INSTVELO>\n",velocity);
+  strcat(XML, buf);
+
+  sprintf(buf, "<VICSTATUS>%d</VICSTATUS>\n",0);
   strcat(XML, buf);
   
   strcat(XML, "</Data>\n");
+
+  // Serial.println(XML);
   // wanna see what the XML code looks like?
   // actually print it to the serial monitor and use some text editor to get the size
   // then pad and adjust char XML[2048]; above
@@ -331,16 +483,65 @@ void request_distance_code(void *parameter)
 {
   for (;;)
   {
+    
     Tx_command = 'D';
     Tx_send[0] = 0;
     Tx_send[1] = 0; 
     transmit_SPI();
-    delay(10);
     Tx_command = 'x';
     Tx_send[0] = 0;
     Tx_send[1] = 0; 
     transmit_SPI();
-    delay(1000);
+    distance_total.buff[0] = RxBuffer[5];
+    distance_total.buff[1] = RxBuffer[6];
+    //Serial.printf("total_distance: %d\r\n", total_distance.value);
+   
+    delay(100);
+  }
+}
+void request_position_code(void *parameter)
+{ 
+  delay(20);
+  for (;;)
+  {
+    
+    Tx_command = 'P';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    Tx_command = 'x';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    x_coord.buff[0] = RxBuffer[5];
+    x_coord.buff[1] = RxBuffer[6];
+    y_coord.buff[0] = RxBuffer[7];
+    y_coord.buff[1] = RxBuffer[8];
+    angle_rotation.buff[0] = RxBuffer[9];
+    angle_rotation.buff[1] = RxBuffer[10];
+    //Serial.printf("x_instant: %d, y_instant: %d, rotation_angle: %d\r\n", x_instant.value, y_instant.value, rotation_angle.value);
+   
+    delay(100);
+  }
+}
+void request_velocity_code(void *parameter)
+{
+  for (;;)
+  {
+    
+    delay(40);
+    Tx_command = 'V';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    Tx_command = 'x';
+    Tx_send[0] = 0;
+    Tx_send[1] = 0; 
+    transmit_SPI();
+    velocity = RxBuffer[5];
+    //Serial.printf("total_distance: %d\r\n", total_distance.value);
+   
+    delay(100);
   }
 }
 // end of code
