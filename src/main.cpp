@@ -33,7 +33,7 @@
 #define VSPI_SCLK 26
 #define VSPI_SS 27 */
 
-
+#define PI = 3.141592653589;
 
 // initialize functions
 void printWifiStatus();     // Print WiFi settings and status
@@ -59,6 +59,8 @@ void request_position_code(void *parameter);
 TaskHandle_t request_position;
 void request_velocity_code(void *parameter);
 TaskHandle_t request_velocity;
+void make_trajectory_code(void *parameter);
+TaskHandle_t make_trajectory;
 
 // variables to store measure data and sensor states
 uint32_t sensor_update_time = 0;
@@ -76,7 +78,7 @@ int16_t paths[5][10][2] = {
         {0, 0}, {200, 200}, {0, 0}, {0, 0}
     },
     {
-        {100, 0}, {100, 100}, {0, 100}, {0, 0}
+        {310, 0}, {0, 880},  {0, 310}, {0, 880}
     },
     {
         {0, 0}, {200, 200}, {0, 0}, {0, 0}
@@ -241,6 +243,15 @@ void setup() {
     0,
     &request_velocity,
     0);
+
+    xTaskCreatePinnedToCore(
+    make_trajectory_code,
+    "make_trajectory",
+    10000,
+    NULL,
+    0,
+    &make_trajectory,
+    0);
 }
 
 void loop() {
@@ -278,7 +289,7 @@ void transmit_SPI(){
   SPI.transferBytes(TxBuffer, RxBuffer, bufferSize);
   digitalWrite(VSPI_SS, HIGH);
   RxBuffer[4] = Rx_command;
-  Serial.printf("Rx: %c | %d, %d, %d, %d, %d\n\rTx: %c | %d, %d, %d, %d, %d\n\r", Rx_command, RxBuffer[5], RxBuffer[6], RxBuffer[7], RxBuffer[8], RxBuffer[9], Tx_command, TxBuffer[5], TxBuffer[6], TxBuffer[7], TxBuffer[8], TxBuffer[9]);
+  //Serial.printf("Rx: %c | %d, %d, %d, %d, %d\n\rTx: %c | %d, %d, %d, %d, %d\n\r", Rx_command, RxBuffer[5], RxBuffer[6], RxBuffer[7], RxBuffer[8], RxBuffer[9], Tx_command, TxBuffer[5], TxBuffer[6], TxBuffer[7], TxBuffer[8], TxBuffer[9]);
 }
 
 // function managed by an .on method to handle slider actions on the web page
@@ -371,32 +382,8 @@ void ProcessTurn(){
   transmit_SPI();
 }
 void ProcessTrajectory(){
-  int8_t x_high_byte, x_low_byte;
-  int8_t y_high_byte, y_low_byte;
-
-  String t_state = server.arg("VALUE");
-  trajectory_choice = t_state.toInt();
-
-  for(int i = 0; i < path_size[trajectory_choice]; i++){
-    x_high_byte = (paths[trajectory_choice][i][0] >> 8) & 0xFF;  
-    x_low_byte = paths[trajectory_choice][i][0] & 0xFF;   
-    y_high_byte = (paths[trajectory_choice][i][1] >> 8) & 0xFF;  
-    y_low_byte = paths[trajectory_choice][i][1] & 0xFF;   
-
-
-    Tx_command = 'M';
-    Tx_send[0] = speed;
-    Tx_send[1] = x_high_byte;
-    Tx_send[2] = x_low_byte;
-    Tx_send[3] = y_high_byte;
-    Tx_send[4] = y_low_byte;
-    transmit_SPI();
-    while (!((x_coord.value > paths[trajectory_choice][i][0] -10) && (x_coord.value < paths[trajectory_choice][i][0] +10)) && !((y_coord.value > paths[trajectory_choice][i][1] -10) && (y_coord.value < paths[trajectory_choice][i][1] +10)) )
-    {
-      /* code */
-    }
-    
-  }
+  Serial.println("go trajectory");
+  vTaskResume(make_trajectory);
 }
 // code to send the main web page
 // PAGE_MAIN is a large char defined in SuperMon.h
@@ -483,7 +470,6 @@ void request_distance_code(void *parameter)
 {
   for (;;)
   {
-    
     Tx_command = 'D';
     Tx_send[0] = 0;
     Tx_send[1] = 0; 
@@ -495,16 +481,7 @@ void request_distance_code(void *parameter)
     distance_total.buff[0] = RxBuffer[5];
     distance_total.buff[1] = RxBuffer[6];
     //Serial.printf("total_distance: %d\r\n", total_distance.value);
-   
-    delay(100);
-  }
-}
-void request_position_code(void *parameter)
-{ 
-  delay(20);
-  for (;;)
-  {
-    
+    delay(20);
     Tx_command = 'P';
     Tx_send[0] = 0;
     Tx_send[1] = 0; 
@@ -520,16 +497,7 @@ void request_position_code(void *parameter)
     angle_rotation.buff[0] = RxBuffer[9];
     angle_rotation.buff[1] = RxBuffer[10];
     //Serial.printf("x_instant: %d, y_instant: %d, rotation_angle: %d\r\n", x_instant.value, y_instant.value, rotation_angle.value);
-   
-    delay(100);
-  }
-}
-void request_velocity_code(void *parameter)
-{
-  for (;;)
-  {
-    
-    delay(40);
+    delay(20);
     Tx_command = 'V';
     Tx_send[0] = 0;
     Tx_send[1] = 0; 
@@ -540,8 +508,82 @@ void request_velocity_code(void *parameter)
     transmit_SPI();
     velocity = RxBuffer[5];
     //Serial.printf("total_distance: %d\r\n", total_distance.value);
-   
     delay(100);
+  }
+}
+void request_position_code(void *parameter)
+{ 
+  for (;;)
+  {
+    delay(100);
+  }
+}
+void request_velocity_code(void *parameter)
+{
+  for (;;)
+  {
+    delay(100);
+  }
+}
+void make_trajectory_code(void *parameter)
+{
+  vTaskSuspend(make_trajectory);
+  int i = 0;
+  int distance_target, true_distance_target;
+  uint8_t answer = 0;
+  for(;;){
+      Serial.println("IN FOR");
+    int8_t x_high_byte, x_low_byte;
+    int8_t y_high_byte, y_low_byte;
+
+    String t_state = server.arg("VALUE");
+    trajectory_choice = t_state.toInt();
+
+    for(i = 0; i < path_size[trajectory_choice]; i++){
+      answer = 0;
+      Serial.println("IN ORDEr");
+      x_low_byte = (paths[trajectory_choice][i][0] >> 8) & 0xFF;  
+      x_high_byte = paths[trajectory_choice][i][0] & 0xFF;   
+      y_low_byte = (paths[trajectory_choice][i][1] >> 8) & 0xFF;  
+      y_high_byte = paths[trajectory_choice][i][1] & 0xFF;   
+
+		  distance_target = (int) (sqrt(pow(paths[trajectory_choice][i][1], 2) + pow(paths[trajectory_choice][i][0],2)) + distance_total.value);
+      true_distance_target = -(distance_total.value - distance_target);
+
+      Tx_command = 'M';
+      Tx_send[0] = speed;
+      Tx_send[1] = x_high_byte;
+      Tx_send[2] = x_low_byte;
+      Tx_send[3] = y_high_byte;
+      Tx_send[4] = y_low_byte;
+      
+      transmit_SPI();
+      Serial.printf("Tx: %c | %d, %d, %d, %d, %d\n\r", Tx_command, TxBuffer[5], TxBuffer[6], TxBuffer[7], TxBuffer[8], TxBuffer[9]);
+      while (true_distance_target > 10 || true_distance_target < -10){
+        true_distance_target = -(distance_total.value - distance_target);
+        //Serial.printf("error: %d; %d, %d\n\r", true_distance_target, distance_total.value, distance_target);
+        delay(20);
+      }
+      Serial.println("WHILE OUT");
+      delay(100);
+
+/*       do{
+      Tx_command = 'E';
+      Tx_send[0] = 0;
+      Tx_send[1] = 0;
+      Tx_send[2] = 0;
+      Tx_send[3] = 0;
+      Tx_send[4] = 0;
+      transmit_SPI();
+      Tx_command = 'x';
+      Tx_send[0] = 0;
+      Tx_send[1] = 0; 
+      transmit_SPI();
+      answer = RxBuffer[5];
+      delay(100);}
+      while(answer); */
+    }
+    vTaskSuspend(make_trajectory);
   }
 }
 // end of code
